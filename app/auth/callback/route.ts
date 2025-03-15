@@ -11,6 +11,9 @@ export async function GET(request: NextRequest) {
   const code = requestUrl.searchParams.get('code');
   const next = requestUrl.searchParams.get('next');
 
+  // Get the site URL from environment variable or use the request origin
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || requestUrl.origin;
+
   if (code) {
     const cookieStore = cookies();
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
@@ -35,17 +38,17 @@ export async function GET(request: NextRequest) {
 
       // Redirect to the specified URL or default to the intern dashboard
       const redirectTo = next || '/dashboard/intern';
-      console.log('AuthCallback: Redirecting to:', redirectTo);
-      return NextResponse.redirect(new URL(redirectTo, requestUrl.origin));
+      console.log('AuthCallback: Redirecting to:', `${siteUrl}${redirectTo}`);
+      return NextResponse.redirect(new URL(redirectTo, siteUrl));
     } catch (error) {
       console.error('AuthCallback: Error in callback processing:', error);
-      return NextResponse.redirect(new URL('/auth/login', requestUrl.origin));
+      return NextResponse.redirect(new URL('/auth/login', siteUrl));
     }
   }
 
   // If no code is present, redirect to login
   console.log('AuthCallback: No code present, redirecting to login');
-  return NextResponse.redirect(new URL('/auth/login', requestUrl.origin));
+  return NextResponse.redirect(new URL('/auth/login', siteUrl));
 }
 
 function generateReferralCode(): string {

@@ -23,6 +23,9 @@ export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
   const supabase = createMiddlewareClient({ req, res });
 
+  // Get the site URL from environment variable or use the request origin
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || req.nextUrl.origin;
+
   // Check auth status
   const {
     data: { session },
@@ -30,7 +33,7 @@ export async function middleware(req: NextRequest) {
 
   // If user is not logged in and trying to access protected routes
   if (!session && req.nextUrl.pathname.startsWith('/dashboard')) {
-    return NextResponse.redirect(new URL('/login', req.url));
+    return NextResponse.redirect(new URL('/login', siteUrl));
   }
 
   // If user is logged in, check if they're active
@@ -43,7 +46,7 @@ export async function middleware(req: NextRequest) {
 
     // If user is inactive and not trying to access the suspended page, redirect them
     if (profile && !profile.is_active && req.nextUrl.pathname !== '/dashboard/suspended') {
-      return NextResponse.redirect(new URL('/dashboard/suspended', req.url));
+      return NextResponse.redirect(new URL('/dashboard/suspended', siteUrl));
     }
   }
 
